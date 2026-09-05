@@ -1,9 +1,9 @@
 package com.deepblue.rescue.domain;
 
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.*;
 
 @Entity
 @Table(name = "animals")
@@ -26,6 +26,9 @@ public class Animal {
     @Column(nullable = false)
     private AnimalSex sex;
 
+    @Column(name = "tracking_device_code", unique = true)
+    private String trackingDeviceCode;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rescue_case_id", unique = true)
     private RescueCase rescueCase;
@@ -38,7 +41,11 @@ public class Animal {
     )
     private MedicalRecord medicalRecord;
 
+    @OneToMany(mappedBy = "animal")
+    private List<Treatment> treatments = new ArrayList<>();
+
     protected Animal() {
+        // requerido por JPA
     }
 
     public Animal(String animalCode, String commonName, String scientificName, AnimalSex sex) {
@@ -79,18 +86,25 @@ public class Animal {
         return sex;
     }
 
+    public String getTrackingDeviceCode() {
+        return trackingDeviceCode;
+    }
+
     public RescueCase getRescueCase() {
         return rescueCase;
     }
-    @OneToMany(mappedBy = "animal")
-    private List<Treatment> treatments = new ArrayList<>();
-
-
-    public List<Treatment> getTreatments() {
-    return treatments;
-}
 
     public MedicalRecord getMedicalRecord() {
         return medicalRecord;
+    }
+
+    public List<Treatment> getTreatments() {
+        return treatments;
+    }
+
+    // Setters
+
+    public void setTrackingDeviceCode(String trackingDeviceCode) {
+        this.trackingDeviceCode = trackingDeviceCode;
     }
 }
