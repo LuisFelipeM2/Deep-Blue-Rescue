@@ -54,70 +54,56 @@ public class TreatmentServiceImplTest {
 void shouldRegisterTreatmentSuccessfully() {
 
     RescueCase rescueCase = new RescueCase(
-            "RES-001", 
-            java.time.LocalDate.now(), 
-            "Bahía", 
+            "RES-001",
+            java.time.LocalDate.now(),
+            "Bahía",
             RescueStatus.IN_REHABILITATION
     );
 
+    Animal animal = mock(Animal.class);
+    when(animal.getRescueCase()).thenReturn(rescueCase);
 
-    Animal animal = new Animal("AN-001", 
-            "Tortuga Marina", 
-            "Chelonia mydas", 
-            AnimalSex.MALE);
-        
-
-  
     Specialist specialist = new Specialist(
-            "SPEC-001",             
-            "Carlos",               
-            "López",                
-            "clopez@gmail.com",       
-            true                    
+            "SPEC-001",
+            "Carlos",
+            "López",
+            "clopez@gmail.com",
+            true
     );
 
     CreateTreatmentRequest request = new CreateTreatmentRequest(
             "AN-001",
             "SPEC-001",
-            java.time.LocalDateTime.now(), 
+            java.time.LocalDateTime.now(),
             TreatmentType.WOUND_CARE,
             "Limpieza de aleta derecha"
     );
 
-
     TreatmentResponse response = new TreatmentResponse(
-            1L, 
-            "AN-001", 
-            "SPEC-001", 
-            java.time.LocalDateTime.now(), 
-            TreatmentType.WOUND_CARE, 
+            1L,
+            "AN-001",
+            "SPEC-001",
+            java.time.LocalDateTime.now(),
+            TreatmentType.WOUND_CARE,
             "Limpieza de aleta derecha"
     );
 
-    
     when(animalRepository.findByAnimalCode("AN-001"))
             .thenReturn(Optional.of(animal));
-            
+
     when(specialistRepository.findByProfessionalCode("SPEC-001"))
             .thenReturn(Optional.of(specialist));
 
     when(treatmentRepository.save(any(Treatment.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-            
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
     when(mapper.toResponse(any(Treatment.class)))
             .thenReturn(response);
 
-
-   
-     Animal animal = mock(Animal.class);
-        when(animal.getRescueCase()).thenReturn(rescueCase);
     TreatmentResponse result = service.register(request);
-
-
 
     assertThat(result).isEqualTo(response);
 
-    
     verify(treatmentRepository).save(any(Treatment.class));
 }
 
@@ -241,81 +227,85 @@ void shouldRegisterTreatmentSuccessfully() {
         verify(treatmentRepository, never()).save(any());
     }
 
-    @Test
-    void shouldThrowExceptionWhenAnimalIsReleasedForObservation() {
+   @Test
+void shouldThrowExceptionWhenAnimalIsReleasedForObservation() {
 
-        
-        
+    RescueCase rescueCase = new RescueCase(
+            "RES-2026-100",
+            java.time.LocalDate.of(2026, 8, 1),
+            "Santa Marta",
+            RescueStatus.RELEASED
+    );
 
-        Animal animal = mock(Animal.class);
-       
+    Animal animal = mock(Animal.class);
+    when(animal.getRescueCase()).thenReturn(rescueCase);
 
-        Specialist specialist = new Specialist(
-                "SPEC-001",            
-                "Elena",              
-                "Vargas",               
-                "evargas@gmail.com",      
-                true                   
-        );
+    Specialist specialist = new Specialist(
+            "SPEC-001",
+            "Elena",
+            "Vargas",
+            "evargas@gmail.com",
+            true
+    );
 
-        CreateTreatmentRequest request = new CreateTreatmentRequest(
-                "AN-2026-100",
-                "SPEC-001",
-                java.time.LocalDateTime.of(2026, 8, 21, 9, 0), 
-                TreatmentType.OBSERVATION, 
-                "Post-release check"
-        );
+    CreateTreatmentRequest request = new CreateTreatmentRequest(
+            "AN-2026-100",
+            "SPEC-001",
+            java.time.LocalDateTime.of(2026, 8, 21, 9, 0),
+            TreatmentType.OBSERVATION,
+            "Post-release check"
+    );
 
-        when(animalRepository.findByAnimalCode("AN-2026-100"))
-                .thenReturn(Optional.of(animal));
-                
-        when(specialistRepository.findByProfessionalCode("SPEC-001"))
-                .thenReturn(Optional.of(specialist));
+    when(animalRepository.findByAnimalCode("AN-2026-100"))
+            .thenReturn(Optional.of(animal));
 
-        assertThatThrownBy(() -> service.register(request))
-                .isInstanceOf(BusinessRuleException.class);
+    when(specialistRepository.findByProfessionalCode("SPEC-001"))
+            .thenReturn(Optional.of(specialist));
 
-        verify(treatmentRepository, never()).save(any());
-    }
+    assertThatThrownBy(() -> service.register(request))
+            .isInstanceOf(BusinessRuleException.class);
 
-    @Test
-    void shouldThrowExceptionWhenSpecialistIsDeactivatedForNewTreatment() {
+    verify(treatmentRepository, never()).save(any());
+}
 
-        RescueCase rescueCase = new RescueCase(
-                "RES-2026-100", 
-                java.time.LocalDate.of(2026, 8, 20), 
-                "Santa Marta", 
-                RescueStatus.IN_REHABILITATION
-        );
+   @Test
+void shouldThrowExceptionWhenSpecialistIsDeactivatedForNewTreatment() {
 
-        Animal animal = mock(Animal.class);
-        when(animal.getRescueCase()).thenReturn(rescueCase);
+    RescueCase rescueCase = new RescueCase(
+            "RES-2026-100",
+            java.time.LocalDate.of(2026, 8, 20),
+            "Santa Marta",
+            RescueStatus.IN_REHABILITATION
+    );
 
-        
-        Specialist specialist = new Specialist(
-                "SPEC-001",            
-                "Elena",              
-                "Vargas",               
-                "evargas@gmail.com",      
-                false 
-        );
+    Animal animal = mock(Animal.class);
+   
 
-        CreateTreatmentRequest request = new CreateTreatmentRequest(
-                "AN-2026-100",
-                "SPEC-001",
-                java.time.LocalDateTime.of(2026, 8, 21, 9, 0), 
-                TreatmentType.WOUND_CARE,
-                "Cleaning of left front flipper injury."
-        );
-        when(specialistRepository.findByProfessionalCode("SPEC-001"))
-        .thenReturn(Optional.of(specialist));
+    Specialist specialist = new Specialist(
+            "SPEC-001",
+            "Elena",
+            "Vargas",
+            "evargas@gmail.com",
+            false
+    );
 
-        when(animalRepository.findByAnimalCode("AN-2026-100"))
-                .thenReturn(Optional.of(animal));
+    CreateTreatmentRequest request = new CreateTreatmentRequest(
+            "AN-2026-100",
+            "SPEC-001",
+            java.time.LocalDateTime.of(2026, 8, 21, 9, 0),
+            TreatmentType.WOUND_CARE,
+            "Cleaning of left front flipper injury."
+    );
 
-        assertThatThrownBy(() -> service.register(request))
-                .isInstanceOf(BusinessRuleException.class);
+    when(animalRepository.findByAnimalCode("AN-2026-100"))
+            .thenReturn(Optional.of(animal));
 
-        verify(treatmentRepository, never()).save(any());
-    }
+    when(specialistRepository.findByProfessionalCode("SPEC-001"))
+            .thenReturn(Optional.of(specialist));
+
+    assertThatThrownBy(() -> service.register(request))
+            .isInstanceOf(BusinessRuleException.class);
+
+    verify(treatmentRepository, never()).save(any());
+}
 }
