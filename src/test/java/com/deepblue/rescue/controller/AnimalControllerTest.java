@@ -23,6 +23,7 @@ import com.deepblue.rescue.domain.TreatmentType;
 import com.deepblue.rescue.dto.response.AnimalResponse;
 import com.deepblue.rescue.dto.response.TreatmentResponse;
 import com.deepblue.rescue.exception.GlobalExceptionHandler;
+import com.deepblue.rescue.exception.ResourceNotFoundException;
 import com.deepblue.rescue.service.AnimalService;
 import com.deepblue.rescue.service.TreatmentService;
 
@@ -96,6 +97,22 @@ class AnimalControllerTest {
 
         verify(animalService).canReceiveTreatment("AN-001");
     }
+
+    @Test
+    void shouldReturn404WhenAnimalDoesNotExistForEligibility() throws Exception {
+    when(animalService.canReceiveTreatment("AN-999"))
+            .thenThrow(new ResourceNotFoundException("Animal not found: AN-999"));
+
+    mockMvc.perform(get("/api/animals/{code}/treatment-eligibility", "AN-999"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.error").value("Not Found"))
+            .andExpect(jsonPath("$.message").value("Animal not found: AN-999"))
+            .andExpect(jsonPath("$.details").isMap());
+
+    verify(animalService).canReceiveTreatment("AN-999");
+}
 }
 
 
