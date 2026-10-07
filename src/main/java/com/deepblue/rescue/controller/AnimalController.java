@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.deepblue.rescue.dto.response.AnimalResponse;
+import com.deepblue.rescue.dto.response.TreatmentEligibilityResponse;
 import com.deepblue.rescue.dto.response.TreatmentResponse;
 import com.deepblue.rescue.service.AnimalService;
 import com.deepblue.rescue.service.TreatmentService;
@@ -39,5 +40,11 @@ public class AnimalController {
         return ResponseEntity.ok(treatmentService.findByAnimalCode(animalCode));
     }
 
+    @GetMapping("/{animalCode}/treatment-eligibility")
+    public ResponseEntity<TreatmentEligibilityResponse>canReceiveTreatment(@PathVariable String animalCode) {
+        boolean eligible = animalService.canReceiveTreatment(animalCode);
+
+        return ResponseEntity.ok(new TreatmentEligibilityResponse(animalCode,eligible));
+    }
     
 }
